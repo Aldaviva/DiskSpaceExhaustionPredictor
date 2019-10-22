@@ -39,8 +39,9 @@ namespace DiskSpaceExhaustionPredictor {
             }
 
             IEnumerable<(double dateOA, long allocatedBytes)> matchingRows = (from scan in scanHistory.scans
+                    orderby scan.dateOA
                     where Path.GetFullPath(scan.path) == driveLetter
-                    select (dateOA: double.Parse(scan.dateOA), allocatedBytes: long.Parse(scan.sizeData.allocatedBytes)))
+                    select (scan.dateOA, allocatedBytes: long.Parse(scan.sizeData.allocatedBytes)))
                 .ToList();
 
             switch (matchingRows.Count()) {
@@ -60,6 +61,9 @@ namespace DiskSpaceExhaustionPredictor {
                     break;
             }
 
+            Console.WriteLine($"Analyzing disk usage over time, based on {matchingRows.Count()} scans, the most recent of which was " +
+                              $"on {DateTime.FromOADate(matchingRows.Last().dateOA):D}.");
+
             double[] dateSequence = matchingRows.Select(x => x.dateOA).ToArray();
             double[] allocatedByteSequence = matchingRows.Select(x => (double) x.allocatedBytes).ToArray();
 
@@ -78,7 +82,7 @@ namespace DiskSpaceExhaustionPredictor {
             double capacityExhaustionDateExcel = (diskCapacity - b) / m;
             DateTime capacityExhaustionDate = DateTime.FromOADate(capacityExhaustionDateExcel);
             double daysRemaining = capacityExhaustionDate.Subtract(DateTime.Now).TotalDays;
-            Console.WriteLine($"Disk space on drive {driveLetter} will be exhausted in about {daysRemaining:N0} days, " +
+            Console.WriteLine($"Disk space on {driveLetter} will be exhausted in about {daysRemaining:N0} days, " +
                               $"around {capacityExhaustionDate:D}.");
 
             return 0;

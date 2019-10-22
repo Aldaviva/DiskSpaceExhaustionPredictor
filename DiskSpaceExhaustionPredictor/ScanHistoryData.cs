@@ -28,7 +28,7 @@ namespace DiskSpaceExhaustionPredictor {
 //        public string path { get; set; }
 
         [XmlElement(ElementName = "Date")]
-        public string dateOA { get; set; }
+        public double dateOA { get; set; }
 
         [XmlElement(ElementName = "Version")]
         public string treeSizeVersion { get; set; }
