@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <!--
+        The Accord dependency contains an app.config file with a element, <dllmap>, that is specific to the Mono runtime.
+        When merging assemblies into one exe, ILRepack merges app.config files, adding <dllmap> to DiskSpaceExhaustionPredictor.config.
+        The .NET Framework CLR fails to start the program, with the error message "Unrecognized configuration section dllmap".
+        There is no option in ILRepack to disable merging app config files. (https://github.com/gluck/il-repack/issues/256)
+        This is the recommended workaround, to back up and restore the config file in the Release directory before and after merging.
+        
+        To activate this file in your build, add the following element as the last child of the <Project> in your csproj file.
+        
+        <Import Project="$(MSBuildProjectDirectory)\AppConfigBackup.targets" />
+    -->
+
+    <Target Name="BackUpAppConfig" BeforeTargets="ILRepack" Condition="'$(Configuration)' == 'Release'">
+        <Copy SourceFiles="$(OutputPath)$(TargetName)$(TargetExt).config"
+              DestinationFiles="$(OutputPath)$(TargetName)$(TargetExt).config.bak" />
+        <Message Text="Backed up app config file" Importance="normal" />
+    </Target>
+
+    <Target Name="RestoreAppConfig" AfterTargets="ILRepack" Condition="'$(Configuration)' == 'Release'">
+        <Move SourceFiles="$(OutputPath)$(TargetName)$(TargetExt).config.bak"
+              DestinationFiles="$(OutputPath)$(TargetName)$(TargetExt).config" />
+        <Message Text="Restored app config file backup" Importance="normal" />
+    </Target>
+
+</Project>
