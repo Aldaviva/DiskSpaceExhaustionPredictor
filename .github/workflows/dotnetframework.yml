@@ -1,0 +1,33 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+
+env:
+  PROJECT_NAME: DiskSpaceExhaustionPredictor
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v1.1
+
+      - name: Clone
+        uses: actions/checkout@v3
+
+      - name: Restore
+        run: msbuild -t:restore -p:RestoreLockedMode=true
+
+      - name: Build
+        run: msbuild ${{ env.PROJECT_NAME }} -p:Configuration=Release -t:build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.PROJECT_NAME }}
+          path: |
+            ${{ env.PROJECT_NAME }}\bin\Release\${{ env.PROJECT_NAME }}.exe
+          if-no-files-found: error
